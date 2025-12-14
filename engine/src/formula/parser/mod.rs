@@ -129,6 +129,7 @@ fn parse_parenthesized(input: &str) -> IResult<&str, Expr> {
     )(input)
 }
 
+
 /// Parse formula with better error handling
 pub fn parse_formula_safe(formula_str: &str) -> Result<Formula, String> {
     match parse_formula(formula_str) {
