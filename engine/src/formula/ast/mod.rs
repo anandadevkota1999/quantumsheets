@@ -79,7 +79,7 @@ impl Formula {
         format!("={}", self.expr_to_string(&self.expression))
     }
     
-    fn expr_to_string(&self, expr: &Expr) -> String {
+        fn expr_to_string(&self, expr: &Expr) -> String {
         match expr {
             Expr::Number(n) => n.to_string(),
             Expr::CellRef(cell) => cell.to_excel(),
@@ -106,5 +106,14 @@ impl Formula {
             }
             Expr::Group(inner) => format!("({})", self.expr_to_string(inner)),
         }
+    }
+    pub fn parse_advanced(formula: &str) -> Result<Self, String> {
+        use crate::formula::parser::parse_formula_safe;
+        
+        if !formula.starts_with('=') {
+            return Err("Formula must start with '='".to_string());
+        }
+        
+        parse_formula_safe(formula)
     }
 }

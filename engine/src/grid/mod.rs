@@ -120,4 +120,13 @@ impl QuantumGrid {
             }
         }
     }
+
+     pub fn columns(&self) -> &HashMap<u32, QuantumColumn> {
+        &self.columns
+    }
+    
+    /// Get formulas (for export)
+    pub fn formulas(&self) -> &HashMap<CellRef, Formula> {
+        &self.formulas
+    }
 }
