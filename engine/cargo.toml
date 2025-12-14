@@ -1,0 +1,29 @@
+[package]
+name = "quantum-engine"
+version = "0.3.0"
+edition = "2021"
+authors = ["Ananda Devkota"]
+description = "Quantum Sheets - 10x faster than Excel"
+
+[dependencies]
+nom = "7.1"      # For formula parsing
+regex = "1.10"   # For natural language patterns
+
+[dev-dependencies]
+approx = "0.5"
+
+[[bench]]
+name = "performance"
+harness = false
+
+[[example]]
+name = "demo"
+path = "examples/demo.rs"
+
+[[example]]
+name = "day2_demo"
+path = "examples/day2_demo.rs"
+
+[[example]]
+name = "day3_demo"
+path = "examples/day3_demo.rs"
