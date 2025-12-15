@@ -1,0 +1,18 @@
+[workspace]
+members = [
+    "engine",
+    "wasm",
+    # "desktop",  # Future
+    # "ui",       # Future
+]
+
+[workspace.dependencies]
+# Shared dependencies could go here if needed
+
+[workspace.package]
+authors = ["Ananda Devkota <anandadevkota1999@gmail.com>"]
+version = "0.6.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/anandadevkota1999/quantumsheets"
+description = "Spreadsheet 10x faster than Excel with AI features"

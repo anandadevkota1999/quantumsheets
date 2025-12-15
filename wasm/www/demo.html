@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Sheets Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Same styles as index.html, simplified */
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .demo-container { max-width: 800px; margin: 0 auto; }
+        .demo-box { background: #f5f5f5; padding: 20px; border-radius: 10px; margin: 10px 0; }
+        button { background: #007bff; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+        .output { background: white; padding: 10px; border-radius: 5px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1>Quantum Sheets Demo</h1>
+        
+        <div class="demo-box">
+            <h3>Try these examples:</h3>
+            <button onclick="runDemo('basic')">Basic Formula</button>
+            <button onclick="runDemo('natural')">Natural Language</button>
+            <button onclick="runDemo('generate')">Generate Data</button>
+            <button onclick="runDemo('custom')">Custom Operation</button>
+        </div>
+        
+        <div class="demo-box">
+            <h3>Output:</h3>
+            <div class="output" id="demo-output">Click a demo button...</div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import init, { QuantumSheetsWasm } from './quantum_sheets.js';
+        
+        let quantum = null;
+        
+        async function initQuantum() {
+            await init();
+            quantum = new QuantumSheetsWasm();
+            console.log('Quantum Sheets ready');
+        }
+        
+        async function runDemo(type) {
+            if (!quantum) await initQuantum();
+            
+            const output = document.getElementById('demo-output');
+            
+            try {
+                let result;
+                switch(type) {
+                    case 'basic':
+                        result = await quantum.execute("=SUM(10,20,30)");
+                        output.innerHTML = `<strong>Basic Formula:</strong> =SUM(10,20,30)<br>
+                                           <strong>Result:</strong> ${result}`;
+                        break;
+                        
+                    case 'natural':
+                        result = await quantum.execute("add 25 and 75");
+                        output.innerHTML = `<strong>Natural Language:</strong> "add 25 and 75"<br>
+                                           <strong>Result:</strong> ${result}`;
+                        break;
+                        
+                    case 'generate':
+                        result = await quantum.generate_data("Nepal phone numbers", 5);
+                        output.innerHTML = `<strong>Generated Data:</strong><br><pre>${result}</pre>`;
+                        break;
+                        
+                    case 'custom':
+                        // Register a custom operation
+                        const customFunc = (args) => {
+                            const num = parseFloat(args[0]);
+                            return `${num} cubed is ${num * num * num}`;
+                        };
+                        
+                        await quantum.register_operation("CUBE", "Cube a number", customFunc);
+                        result = await quantum.execute("CUBE 3");
+                        output.innerHTML = `<strong>Custom Operation:</strong> CUBE 3<br>
+                                           <strong>Result:</strong> ${result}`;
+                        break;
+                }
+            } catch (error) {
+                output.innerHTML = `<strong>Error:</strong> ${error}`;
+            }
+        }
+        
+        // Make function available globally
+        window.runDemo = runDemo;
+    </script>
+</body>
+</html>

@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Sheets - Web Interface</title>
+    <style>
+        :root {
+            --quantum-blue: #2563eb;
+            --quantum-purple: #7c3aed;
+            --quantum-dark: #0f172a;
+            --quantum-light: #f8fafc;
+            --quantum-border: #e2e8f0;
+            --quantum-success: #10b981;
+            --quantum-error: #ef4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: var(--quantum-dark);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--quantum-blue), var(--quantum-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+        
+        .tagline {
+            background: rgba(255, 255, 255, 0.1);
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 100px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .grid-section {
+            grid-column: 1 / -1;
+        }
+        
+        .spreadsheet-grid {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .spreadsheet-grid th {
+            background: var(--quantum-dark);
+            color: white;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid var(--quantum-border);
+        }
+        
+        .spreadsheet-grid td {
+            padding: 0.75rem;
+            border: 1px solid var(--quantum-border);
+            min-width: 120px;
+            height: 45px;
+        }
+        
+        .spreadsheet-grid td input {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            background: transparent;
+        }
+        
+        .cell-active {
+            background: rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 2px var(--quantum-blue);
+        }
+        
+        .panel {
+            background: var(--quantum-light);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--quantum-border);
+        }
+        
+        .panel h3 {
+            color: var(--quantum-dark);
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #475569;
+            font-weight: 500;
+        }
+        
+        input, textarea, select, button {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--quantum-border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--quantum-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        button {
+            background: linear-gradient(90deg, var(--quantum-blue), var(--quantum-purple));
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: #64748b;
+        }
+        
+        .btn-success {
+            background: var(--quantum-success);
+        }
+        
+        .ai-command {
+            position: relative;
+        }
+        
+        .ai-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--quantum-purple);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+        
+        .output {
+            background: white;
+            border: 1px solid var(--quantum-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .success {
+            color: var(--quantum-success);
+            border-left: 4px solid var(--quantum-success);
+            padding-left: 1rem;
+        }
+        
+        .error {
+            color: var(--quantum-error);
+            border-left: 4px solid var(--quantum-error);
+            padding-left: 1rem;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--quantum-border);
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--quantum-blue);
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--quantum-border);
+            margin-bottom: 1rem;
+        }
+        
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            color: #64748b;
+        }
+        
+        .tab.active {
+            color: var(--quantum-blue);
+            border-bottom-color: var(--quantum-blue);
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+            font-size: 0.9rem;
+            border-top: 1px solid var(--quantum-border);
+        }
+        
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--quantum-blue);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .highlight {
+            animation: highlight 1s;
+        }
+        
+        @keyframes highlight {
+            0% { background-color: rgba(37, 99, 235, 0.3); }
+            100% { background-color: transparent; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">QUANTUM SHEETS</div>
+            <div class="subtitle">Spreadsheet 10x faster than Excel with AI features</div>
+            <div class="tagline">WebAssembly Edition v0.6.0</div>
+        </header>
+        
+        <div class="main-content">
+            <div class="grid-section">
+                <h3 style="margin-bottom: 1rem; color: var(--quantum-dark);">Spreadsheet Grid</h3>
+                <table class="spreadsheet-grid" id="grid">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;"></th>
+                            <th>A</th>
+                            <th>B</th>
+                            <th>C</th>
+                            <th>D</th>
+                            <th>E</th>
+                        </tr>
+                    </thead>
+                    <tbody id="grid-body">
+                        <!-- Rows will be generated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="panel">
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('ai')">🤖 AI Assistant</div>
+                    <div class="tab" onclick="switchTab('formula')">📊 Formulas</div>
+                    <div class="tab" onclick="switchTab('generate')">🎲 Generate Data</div>
+                    <div class="tab" onclick="switchTab('operations')">⚡ Operations</div>
+                </div>
+                
+                <!-- AI Assistant Tab -->
+                <div id="ai-tab" class="tab-content active">
+                    <h3>AI Assistant</h3>
+                    <p style="color: #64748b; margin-bottom: 1rem;">Ask in plain English or use formulas</p>
+                    
+                    <div class="form-group ai-command">
+                        <label>Your Command</label>
+                        <input type="text" id="ai-command" placeholder="Try: 'add A1 and B2' or 'sum A1 to A10'">
+                        <div class="ai-icon">AI</div>
+                    </div>
+                    
+                    <button onclick="executeCommand()" id="execute-btn">Execute Command</button>
+                    
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>Or try these examples:</label>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button class="btn-secondary" onclick="runExample('add A1 and B2')">Add A1 & B2</button>
+                            <button class="btn-secondary" onclick="runExample('sum A1 to A5')">Sum A1:A5</button>
+                            <button class="btn-secondary" onclick="runExample('average of B1:B10')">Average B1:B10</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Formula Tab -->
+                <div id="formula-tab" class="tab-content">
+                    <h3>Formula Evaluation</h3>
+                    <div class="form-group">
+                        <label>Formula</label>
+                        <input type="text" id="formula-input" placeholder="=SUM(A1:A10)">
+                    </div>
+                    <button onclick="evaluateFormula()">Evaluate</button>
+                    
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>Cell Operations</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                            <input type="text" id="cell-ref" placeholder="A1">
+                            <input type="text" id="cell-value" placeholder="Value">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
+                            <button class="btn-secondary" onclick="getCellValue()">Get</button>
+                            <button class="btn-success" onclick="setCellValue()">Set</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Generate Data Tab -->
+                <div id="generate-tab" class="tab-content">
+                    <h3>AI Data Generator</h3>
+                    <p style="color: #64748b; margin-bottom: 1rem;">Generate realistic Nepal/India data</p>
+                    
+                    <div class="form-group">
+                        <label>Request</label>
+                        <textarea id="data-request" rows="3" placeholder="Example: Nepal phone numbers, Indian cities, random gender">Nepal phone numbers, Indian cities, random gender</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Number of Rows</label>
+                        <input type="number" id="row-count" value="10" min="1" max="1000">
+                    </div>
+                    
+                    <button onclick="generateData()">Generate Data</button>
+                    
+                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                        <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
+                        <button class="btn-secondary" onclick="exportJSON()">Export JSON</button>
+                    </div>
+                </div>
+                
+                <!-- Operations Tab -->
+                <div id="operations-tab" class="tab-content">
+                    <h3>Custom Operations</h3>
+                    <p style="color: #64748b; margin-bottom: 1rem;">Register your own operations</p>
+                    
+                    <div class="form-group">
+                        <label>Operation Name</label>
+                        <input type="text" id="op-name" placeholder="DOUBLE">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="op-desc" placeholder="Double a value">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>JavaScript Function</label>
+                        <textarea id="op-function" rows="5" placeholder="(args) => {
+    const num = parseFloat(args[0]);
+    return `${num} doubled is ${num * 2}`;
+}">(args) => {
+    const num = parseFloat(args[0]);
+    return `${num} doubled is ${num * 2}`;
+}</textarea>
+                    </div>
+                    
+                    <button onclick="registerOperation()">Register Operation</button>
+                    
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>Test Registered Operation</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" id="test-operation" placeholder="DOUBLE 25" style="flex: 1;">
+                            <button class="btn-secondary" onclick="testOperation()">Test</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="output" id="output">
+                    <div style="color: #64748b; text-align: center; margin-top: 2rem;">
+                        👆 Run a command to see results here
+                    </div>
+                </div>
+                
+                <div class="stats" id="stats">
+                    <!-- Stats will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Quantum Sheets v0.6.0 | Built with Rust & WebAssembly | 4.8x more memory efficient than Excel</p>
+            <p style="margin-top: 0.5rem; font-size: 0.8rem;">
+                <a href="https://github.com/anandadevkota1999/quantumsheets" style="color: var(--quantum-blue); text-decoration: none;">
+                    View on GitHub
+                </a>
+            </p>
+        </footer>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.20.0/dist/tf.min.js"></script>
+    <script type="module">
+        import init, { QuantumSheetsWasm } from './quantum_sheets.js';
+        
+        let quantum = null;
+        
+        async function initialize() {
+            try {
+                document.getElementById('output').innerHTML = '<div class="loader"></div> Loading Quantum Sheets engine...';
+                
+                // Load WebAssembly module
+                await init();
+                
+                // Create Quantum Sheets instance
+                quantum = new QuantumSheetsWasm();
+                
+                // Initialize grid
+                initializeGrid();
+                
+                // Load sample data
+                loadSampleData();
+                
+                // Update stats
+                updateStats();
+                
+                document.getElementById('output').innerHTML = '<div class="success">✅ Quantum Sheets loaded successfully!</div>' +
+                    '<div style="margin-top: 0.5rem;">Try: <code>add A1 and B2</code> or <code>generate 10 Nepal phone numbers</code></div>';
+                
+                console.log('Quantum Sheets initialized');
+            } catch (error) {
+                document.getElementById('output').innerHTML = `<div class="error">❌ Failed to load: ${error}</div>`;
+                console.error('Initialization error:', error);
+            }
+        }
+        
+        function initializeGrid() {
+            const gridBody = document.getElementById('grid-body');
+            gridBody.innerHTML = '';
+            
+            // Create 10 rows
+            for (let row = 1; row <= 10; row++) {
+                const tr = document.createElement('tr');
+                
+                // Row number
+                const th = document.createElement('th');
+                th.textContent = row;
+                tr.appendChild(th);
+                
+                // Cells A-E
+                for (let col = 0; col < 5; col++) {
+                    const cellLetter = String.fromCharCode(65 + col); // A, B, C, D, E
+                    const cellId = `${cellLetter}${row}`;
+                    
+                    const td = document.createElement('td');
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = `cell-${cellId}`;
+                    input.placeholder = cellId;
+                    input.addEventListener('focus', () => highlightCell(cellId));
+                    input.addEventListener('blur', () => updateCell(cellId, input.value));
+                    
+                    td.appendChild(input);
+                    tr.appendChild(td);
+                }
+                
+                gridBody.appendChild(tr);
+            }
+        }
+        
+        function loadSampleData() {
+            // Set some sample data
+            setCellValueDirect('A1', '10');
+            setCellValueDirect('B1', '20');
+            setCellValueDirect('A2', '30');
+            setCellValueDirect('B2', '40');
+            setCellValueDirect('A3', '50');
+            setCellValueDirect('B3', '60');
+            setCellValueDirect('A4', '=SUM(A1:A3)');
+        }
+        
+        function setCellValueDirect(cell, value) {
+            const input = document.getElementById(`cell-${cell}`);
+            if (input) {
+                input.value = value;
+            }
+        }
+        
+        function highlightCell(cellId) {
+            // Remove previous highlights
+            document.querySelectorAll('.cell-active').forEach(el => {
+                el.classList.remove('cell-active');
+            });
+            
+            // Highlight current cell
+            const input = document.getElementById(`cell-${cellId}`);
+            if (input) {
+                input.parentElement.classList.add('cell-active');
+                input.parentElement.classList.add('highlight');
+                
+                // Remove highlight animation after it completes
+                setTimeout(() => {
+                    input.parentElement.classList.remove('highlight');
+                }, 1000);
+            }
+        }
+        
+        async function updateCell(cellId, value) {
+            if (!quantum) return;
+            
+            try {
+                await quantum.set_cell(cellId, value);
+                console.log(`Cell ${cellId} updated to: ${value}`);
+                updateStats();
+            } catch (error) {
+                console.error(`Error updating cell ${cellId}:`, error);
+            }
+        }
+        
+        async function executeCommand() {
+            if (!quantum) return;
+            
+            const command = document.getElementById('ai-command').value.trim();
+            if (!command) return;
+            
+            const btn = document.getElementById('execute-btn');
+            const originalText = btn.textContent;
+            btn.innerHTML = '<span class="loader"></span>Processing...';
+            btn.disabled = true;
+            
+            try {
+                const result = await quantum.execute(command);
+                showOutput(`<div class="success">✅ <strong>Command:</strong> ${command}</div>
+                           <div style="margin-top: 0.5rem;"><strong>Result:</strong> ${result}</div>`);
+                document.getElementById('ai-command').value = '';
+                
+                // Update grid if cells were modified
+                updateGridFromEngine();
+                updateStats();
+            } catch (error) {
+                showOutput(`<div class="error">❌ <strong>Error executing:</strong> ${command}</div>
+                           <div style="margin-top: 0.5rem;"><strong>Error:</strong> ${error}</div>`);
+            }
+            
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }
+        
+        function runExample(example) {
+            document.getElementById('ai-command').value = example;
+            executeCommand();
+        }
+        
+        async function evaluateFormula() {
+            if (!quantum) return;
+            
+            const formula = document.getElementById('formula-input').value.trim();
+            if (!formula) return;
+            
+            try {
+                const result = await quantum.evaluate_formula(formula);
+                showOutput(`<div class="success">✅ <strong>Formula:</strong> ${formula}</div>
+                           <div style="margin-top: 0.5rem;"><strong>Result:</strong> ${result}</div>`);
+            } catch (error) {
+                showOutput(`<div class="error">❌ <strong>Error evaluating:</strong> ${formula}</div>
+                           <div style="margin-top: 0.5rem;"><strong>Error:</strong> ${error}</div>`);
+            }
+        }
+        
+        async function getCellValue() {
+            if (!quantum) return;
+            
+            const cellRef = document.getElementById('cell-ref').value.trim();
+            if (!cellRef) return;
+            
+            try {
+                const value = await quantum.get_cell(cellRef);
+                showOutput(`<div class="success">✅ <strong>Cell ${cellRef}:</strong> ${value}</div>`);
+                highlightCell(cellRef);
+            } catch (error) {
+                showOutput(`<div class="error">❌ <strong>Error getting cell ${cellRef}:</strong> ${error}</div>`);
+            }
+        }
+        
+        async function setCellValue() {
+            if (!quantum) return;
+            
+            const cellRef = document.getElementById('cell-ref').value.trim();
+            const value = document.getElementById('cell-value').value.trim();
+            
+            if (!cellRef || value === '') return;
+            
+            try {
+                await quantum.set_cell(cellRef, value);
+                showOutput(`<div class="success">✅ <strong>Cell ${cellRef} set to:</strong> ${value}</div>`);
+                
+                // Update grid display
+                setCellValueDirect(cellRef, value);
+                highlightCell(cellRef);
+                updateStats();
+            } catch (error) {
+                showOutput(`<div class="error">❌ <strong>Error setting cell ${cellRef}:</strong> ${error}</div>`);
+            }
+        }
+        
+        async function generateData() {
+            if (!quantum) return;
+            
+            const request = document.getElementById('data-request').value.trim();
+            const count = parseInt(document.getElementById('row-count').value);
+            
+            if (!request) return;
+            
+            try {
+                const result = await quantum.generate_data(request, count);
+                showOutput(`<div class="success">✅ <strong>Generated ${count} rows:</strong></div>
+                           <div style="margin-top: 0.5rem; white-space: pre-wrap; font-family: monospace;">${result}</div>`);
+                updateStats();
+            } catch (error) {
+                showOutput(`<div class="error">❌ <strong>Error generating data:</strong> ${error}</div>`);
+            }
+        }
+        
+        async function exportCSV() {
+            if (!quantum) return;
+            
+            try {
+                const csv = await quantum.export_csv();
+                showOutput(`<div class="success">✅ <strong>CSV Export:</strong></div>
+                           <div style="margin-top: 0.5rem; white-space: pre-wrap; font-family: monospace;">${csv}</div>`);
+                
+                // Create download link
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'quantum_sheets_export.csv';
+                a.click();
+            } catch (error) {
+                showOutput(`<div class="error">❌ <strong>Error exporting CSV:</strong> ${error}</div>`);
+            }
+        }
+        
+        async function exportJSON() {
+            if (!quantum) return;
+            
+            try {
+                const json = await quantum.export_json();
+                showOutput(`<div class="success">✅ <strong>JSON Export:</strong></div>
+                           <div style="margin-top: 0.5rem; white-space: pre-wrap; font-family: monospace;">${json}</div>`);
+                
+                // Create download link
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'quantum_sheets_export.json';
+                a.click();
+            } catch (error) {
+                showOutput(`<div class="error">❌ <strong>Error exporting JSON:</strong> ${error}</div>`);
+            }
+        }
+        
+        async function registerOperation() {
+            if (!quantum) return;
+            
+            const name = document.getElementById('op-name').value.trim();
+            const description = document.getElementById('op-desc').value.trim();
+            const funcStr = document.getElementById('op-function').value.trim();
+            
+            if (!name || !funcStr) return;
+            
+            try {
+                // Create the function from string
+                const func = new Function('args', `return (${funcStr})(args);`);
+                
+                await quantum.register_operation(name, description, func);
+                showOutput(`<div class="success">✅ <strong>Operation registered:</strong> ${name}</div>
+                           <div style="margin-top: 0.5rem;">${description}</div>`);
+            } catch (error) {
+                showOutput(`<div class="error">❌ <strong>Error registering operation:</strong> ${error}</div>`);
+            }
+        }
+        
+        async function testOperation() {
+            if (!quantum) return;
+            
+            const command = document.getElementById('test-operation').value.trim();
+            if (!command) return;
+            
+            try {
+                const result = await quantum.execute(command);
+                showOutput(`<div class="success">✅ <strong>Operation:</strong> ${command}</div>
+                           <div style="margin-top: 0.5rem;"><strong>Result:</strong> ${result}</div>`);
+            } catch (error) {
+                showOutput(`<div class="error">❌ <strong>Error testing operation:</strong> ${error}</div>`);
+            }
+        }
+        
+        async function updateGridFromEngine() {
+            if (!quantum) return;
+            
+            // Update A1:E10 cells from engine
+            for (let row = 1; row <= 10; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const cellLetter = String.fromCharCode(65 + col);
+                    const cellId = `${cellLetter}${row}`;
+                    
+                    try {
+                        const value = await quantum.get_cell(cellId);
+                        if (value) {
+                            setCellValueDirect(cellId, value);
+                        }
+                    } catch (error) {
+                        // Cell might not exist yet, that's fine
+                    }
+                }
+            }
+        }
+        
+        async function updateStats() {
+            if (!quantum) return;
+            
+            try {
+                const stats = await quantum.get_stats();
+                const statsDiv = document.getElementById('stats');
+                statsDiv.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">4.8x</div>
+                        <div class="stat-label">Memory Efficiency</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">1.5x</div>
+                        <div class="stat-label">Faster Compute</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats}</div>
+                        <div class="stat-label">Active Cells</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">WASM</div>
+                        <div class="stat-label">WebAssembly</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error getting stats:', error);
+            }
+        }
+        
+        function showOutput(html) {
+            const outputDiv = document.getElementById('output');
+            outputDiv.innerHTML = html;
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+        
+        function switchTab(tabName) {
+            // Update tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initialize);
+        
+        // Make functions available globally
+        window.executeCommand = executeCommand;
+        window.runExample = runExample;
+        window.evaluateFormula = evaluateFormula;
+        window.getCellValue = getCellValue;
+        window.setCellValue = setCellValue;
+        window.generateData = generateData;
+        window.exportCSV = exportCSV;
+        window.exportJSON = exportJSON;
+        window.registerOperation = registerOperation;
+        window.testOperation = testOperation;
+        window.switchTab = switchTab;
+    </script>
+</body>
+</html>

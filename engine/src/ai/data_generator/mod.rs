@@ -152,3 +152,8 @@ impl AIDataGenerator {
         println!("└─────┴──────────────┴────────────────────┴────────┘");
     }
 }
+impl std::fmt::Display for DataRecord {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)  // Use Debug representation
+    }
+}

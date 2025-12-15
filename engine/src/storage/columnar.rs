@@ -5,7 +5,7 @@ use super::ColumnStats;
 /// QuantumColumn - Our efficient column storage
 pub struct QuantumColumn {
     _name: String,  // Underscore indicates intentionally unused
-    data: Vec<f64>,  // Changed from Option<f64> to f64 for simplicity
+    pub(crate) data: Vec<f64>,  // Changed from Option<f64> to f64 for simplicity
     stats: ColumnStats,
 }
 

@@ -1,0 +1,23 @@
+[package]
+name = "quantum-sheets-wasm"
+version = "0.6.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = ["console"] }
+getrandom = { version = "0.2", features = ["js"] }
+console_error_panic_hook = "0.1"  # ADD THIS
+quantum-engine = { path = "../engine", features = ["wasm"] }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[profile.release]
+lto = true
+opt-level = "s"
+codegen-units = 1
